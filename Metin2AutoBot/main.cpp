@@ -13,7 +13,7 @@ int main()
 	while (running)
 	{
 		int key = waitKey(0);
-
+		cout << winapi.get_mat() << "\n";
 		if (winapi.read_screen())
 			imshow(global.title, winapi.get_mat());
 

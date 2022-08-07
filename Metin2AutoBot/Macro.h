@@ -14,4 +14,4 @@
 								T(T &&) = delete; \
 								T operator = (T &&) = delete; 
 
-#define PARTIAL_SINGLETONIZE(T)					static T & get_instance() { static T instance; return instance; } \
+#define PARTIAL_SINGLETONIZE(T)					static T & get_instance() { static T instance; return instance; } 
