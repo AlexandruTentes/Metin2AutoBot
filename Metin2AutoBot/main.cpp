@@ -18,8 +18,9 @@ int main()
 
 		if (winapi.read_screen())
 		{
+			opencv.update();
 			imshow(global.title, opencv.get_mat());
-			imshow(global.map_title, opencv.get_map_mat());
+			imshow(global.map_title, opencv.get_color_map_mat());			
 		}
 
 		if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_F5))
@@ -28,4 +29,6 @@ int main()
 		if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_F4) || key == 27)
 			running = false;
 	}
+
+	destroyAllWindows();
 }
