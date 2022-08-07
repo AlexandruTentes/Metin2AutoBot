@@ -2,7 +2,15 @@
 
 void mt2::WinApiWrapper::init()
 {
+    std::cout << "Waiting to detect the game...\n";
 
+    while (hwnd == NULL)
+    {
+        hwnd = FindWindowA(NULL, global.game_name);
+    }
+
+    std::cout << "Found game!\n";
+    this->get_screen_mat();
 }
 
 BITMAPINFOHEADER mt2::WinApiWrapper::create_bitmap_header(int width, int height)
@@ -36,11 +44,6 @@ void mt2::WinApiWrapper::get_focused_window()
         hwnd = GetForegroundWindow();
         GetWindowTextA(hwnd, global.title, sizeof(global.title));
 
-        //Get the dimensions of the focused window;
-        GetWindowRect(hwnd, &(rect));
-        width = rect.right - rect.left;
-        height = rect.bottom - rect.top;
-
         this->get_screen_mat();
     }
     catch (const std::exception& e)
@@ -60,14 +63,18 @@ bool mt2::WinApiWrapper::get_screen_mat()
     RECT rect;
     GetClientRect(hwnd, &rect);
 
-    screen_x = rect.bottom;
-    screen_y = rect.right;
-    width = rect.bottom / scale;
-    height = rect.right / scale;
+    while (rect.left == 0 && rect.right == 0)
+    {
+        GetClientRect(hwnd, &rect);
+        Sleep(5);
+    }
 
-    std::cout << rect.left << "--" << rect.right  << "--" << rect.top << "--" << rect.bottom << "\n";
+    screen_width = rect.right;
+    screen_height = rect.bottom;
+    width = rect.right / scale;
+    height = rect.bottom / scale;
 
-    mat.create(height, width, CV_8UC4);
+    opencv.get_mat().create(height, width, CV_8UC4);
 
     hb_window = CreateCompatibleBitmap(windowDC, width, height);
     bi = create_bitmap_header(width, height);
@@ -85,21 +92,47 @@ bool mt2::WinApiWrapper::read_screen()
     if (hwnd == NULL)
         return false;
 
-    StretchBlt(compatible_windowDC, 0, 0, width, height, windowDC, 0, 0, screen_x, screen_y, SRCCOPY);  //change SRCCOPY to NOTSRCCOPY for wacky colors !
-    GetDIBits(compatible_windowDC, hb_window, 0, height, mat.data, (BITMAPINFO*)&bi, DIB_RGB_COLORS);            //copy from hwindowCompatibleDC to hbwindow
+    StretchBlt(compatible_windowDC, 0, 0, width, height, windowDC, 0, 0, screen_width, screen_height, SRCCOPY);  //change SRCCOPY to NOTSRCCOPY for wacky colors !
+    GetDIBits(compatible_windowDC, hb_window, 0, height, opencv.get_mat().data, (BITMAPINFO*)&bi, DIB_RGB_COLORS);            //copy from hwindowCompatibleDC to hbwindow
+
+    if (FindWindowA(NULL, global.game_name) == NULL)
+    {
+        std::cout << "Game closed!\n";
+        hwnd = NULL;
+        opencv.get_mat().release();
+        init();
+    }
+
+    //Reading the Map
+    this->read_screen(opencv.get_map_mat(), width * global.map_x, height * global.map_y, width * global.map_width, height * global.map_height);
+
+    return !opencv.get_mat().empty();
+}
+
+bool mt2::WinApiWrapper::read_screen(Mat & mat, int x, int y, int width, int height)
+{
+    if (hwnd == NULL || opencv.get_mat().empty())
+        return false;
+
+    if (mat.size().height == 0)
+        mat.create(height, width, CV_8UC4);
+
+    Rect roi(x, y, width, height);
+    Mat src_mat = opencv.get_mat();
+    mat = src_mat(roi);
 
     return !mat.empty();
 }
 
-Mat mt2::WinApiWrapper::get_mat()
-{
-    return mat;
-}
-
-mt2::WinApiWrapper::~WinApiWrapper()
+void mt2::WinApiWrapper::clear()
 {
     DeleteObject(hb_window);
     DeleteDC(compatible_windowDC);
     ReleaseDC(hwnd, windowDC);
+}
+
+mt2::WinApiWrapper::~WinApiWrapper()
+{
+    clear();
 }
 

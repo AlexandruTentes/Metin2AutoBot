@@ -13,8 +13,15 @@ namespace mt2
 	public:
 		SINGLETONIZE_INIT(OpenCVWrapper)
 
+		Mat& get_mat()						{ return mat; };
+		Mat& get_map_mat()					{ return map_mat; };
+
 		virtual ~OpenCVWrapper();
 	private:
 		void init();
+
+	private:
+		Mat mat;
+		Mat map_mat;
 	};
 }

@@ -1,5 +1,6 @@
 #include "Global.h"
 #include "src/header/WinApiWrapper.h"
+#include "src/header/OpenCVWrapper.h"
 
 using namespace std;
 using namespace mt2;
@@ -8,14 +9,18 @@ int main()
 {
 	bool running = true;
 	WinApiWrapper& winapi = WinApiWrapper::get_instance();
+	OpenCVWrapper& opencv = OpenCVWrapper::get_instance();
 	Global& global = Global::get_instance();
 
 	while (running)
 	{
-		int key = waitKey(0);
-		cout << winapi.get_mat() << "\n";
+		int key = waitKey(1);
+
 		if (winapi.read_screen())
-			imshow(global.title, winapi.get_mat());
+		{
+			imshow(global.title, opencv.get_mat());
+			imshow(global.map_title, opencv.get_map_mat());
+		}
 
 		if (GetAsyncKeyState(VK_CONTROL) && GetAsyncKeyState(VK_F5))
 			winapi.get_focused_window();

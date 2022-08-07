@@ -16,7 +16,10 @@ namespace mt2
 		void get_focused_window();
 		bool get_screen_mat();
 		bool read_screen();
-		Mat get_mat();
+		bool read_screen(Mat & mat, int x = 0, int y = 0, int width = 0, int height = 0);
+		void clear();
+		int get_width() { return width; }
+		int get_height() { return height; }
 
 		virtual ~WinApiWrapper();
 
@@ -30,8 +33,7 @@ namespace mt2
 		int width = 0, height = 0;
 		HDC windowDC, compatible_windowDC;
 		HBITMAP hb_window;
-		Mat mat;
-		int screen_x, screen_y;
+		int screen_width, screen_height;
 		float scale = 1.0;
 		BITMAPINFOHEADER bi;
 
